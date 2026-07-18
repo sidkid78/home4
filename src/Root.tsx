@@ -15,7 +15,10 @@ export const App: React.FC = () => {
   const [actors, setActors] = useState<DemoActors | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ProcessResult | null>(null);
-  const [persona, setPersona] = useState<Persona>('homeowner');
+  // Returning from Stripe checkout lands on the marketplace so it can settle.
+  const [persona, setPersona] = useState<Persona>(
+    new URLSearchParams(window.location.search).get('checkout') ? 'contractor' : 'homeowner'
+  );
 
   // Load the authenticated user's context once signed in.
   useEffect(() => {

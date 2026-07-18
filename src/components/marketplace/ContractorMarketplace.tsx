@@ -47,6 +47,44 @@ export const ContractorMarketplace: React.FC<Props> = ({ actors }) => {
 
   useEffect(loadLeads, []);
 
+  // Handle the return from Stripe checkout (?checkout=success&lead=…): poll the
+  // lead until the webhook has settled it, then show the unlocked report.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const checkout = params.get('checkout');
+    const leadId = params.get('lead');
+    if (!checkout) return;
+    window.history.replaceState({}, '', window.location.pathname);
+    if (checkout === 'cancel') {
+      setError('Checkout canceled.');
+      return;
+    }
+    if (checkout === 'success' && leadId) {
+      setBusy('settling');
+      (async () => {
+        // Ensure the returning buyer is in the contractor role for the paywall.
+        await apiFetch('/v1/me/role', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ role: 'contractor' }),
+        }).catch(() => {});
+        for (let i = 0; i < 8; i++) {
+          const res = await apiFetch(`/v1/leads/${leadId}/status`);
+          if (res.ok) {
+            const lead = await res.json();
+            if (lead.status === 'SOLD' && lead.reportId) {
+              const rep = await apiFetch(`/v1/reports/${lead.reportId}`);
+              if (rep.ok) { setUnlocked(await rep.json()); setBusy(null); return; }
+            }
+          }
+          await new Promise((r) => setTimeout(r, 1500));
+        }
+        setBusy(null);
+        setError('Payment received — settlement is taking a moment. Reload shortly.');
+      })();
+    }
+  }, []);
+
   const onboard = async () => {
     setBusy('onboard');
     setError(null);
@@ -68,24 +106,14 @@ export const ContractorMarketplace: React.FC<Props> = ({ actors }) => {
     setBusy(lead.id);
     setError(null);
     try {
-      // Settle the purchase (dev endpoint mirrors the Stripe checkout+webhook
-      // settlement atomically; works whether or not live Stripe keys are set).
-      const buyRes = await apiFetch('/v1/dev/purchase-lead', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ leadId: lead.id, contractorId: actors.contractorId }),
-      });
-      if (!buyRes.ok) throw new Error((await buyRes.json()).error || 'Purchase failed');
-
-      // Fetch the now-unlocked report through the RLS-style paywall.
-      const reportRes = await apiFetch(`/v1/reports/${lead.reportId}`, {
-        headers: contractorHeaders(actors.contractorId),
-      });
-      if (!reportRes.ok) throw new Error(`Report still locked (${reportRes.status})`);
-      setUnlocked(await reportRes.json());
+      // Real Stripe checkout → redirect to the hosted payment page. On return,
+      // the ?checkout=success handler above settles + unlocks the report.
+      const res = await apiFetch(`/v1/leads/${lead.id}/checkout`, { method: 'POST' });
+      if (!res.ok) throw new Error((await res.json()).error || 'Checkout failed');
+      const { url } = await res.json();
+      window.location.href = url;
     } catch (e: any) {
       setError(e.message);
-    } finally {
       setBusy(null);
     }
   };

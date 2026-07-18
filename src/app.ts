@@ -17,6 +17,24 @@ export async function buildApp(): Promise<FastifyInstance> {
   // 15MB body limit: capture uploads arrive as base64-encoded image frames.
   const app = Fastify({ logger: true, bodyLimit: 15 * 1024 * 1024 });
 
+  // Preserve the raw JSON body on request.rawBody so the Stripe webhook can
+  // verify signatures against the exact bytes Stripe sent (re-stringifying the
+  // parsed object changes the bytes and breaks verification).
+  app.addContentTypeParser(
+    'application/json',
+    { parseAs: 'buffer' },
+    (_req, body, done) => {
+      (_req as any).rawBody = body;
+      if (!body || (body as Buffer).length === 0) return done(null, undefined);
+      try {
+        done(null, JSON.parse((body as Buffer).toString('utf8')));
+      } catch (err: any) {
+        err.statusCode = 400;
+        done(err, undefined);
+      }
+    }
+  );
+
   await app.register(cors);
   await app.register(jwt, { secret: process.env.JWT_SECRET || 'supersecret' });
 

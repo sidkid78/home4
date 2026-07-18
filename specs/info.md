@@ -1,28 +1,89 @@
-## 🎯 Workflow Selection
-
-- **Selected Workflow:** orchestrator_workers
-- **Confidence Score:** 0.95
-- **Reasoning:** The user query requires translating a comprehensive business and product briefing into a detailed technical architecture. This is a complex, multi-faceted task that involves several distinct engineering domains: database modeling (Prisma/PostgreSQL), API design (Fastify), AI integration (Gemini), security (Supabase RLS), and payment systems (Stripe). The Orchestrator-Workers pattern is ideal here because an orchestrator can analyze the extensive documentation and delegate the creation of specific logic components to specialized 'workers' for each domain, ensuring that the final architecture is cohesive and covers the entire 'Capture to Execute' workflow described in the document.
-
-## 📊 Performance Metrics
-
-- **Processing Time:** 154.00 seconds
-- **Total Steps:** 9
-- **Final Response Length:** 6,605 characters
-- **Total Content Generated:** 71,050 characters
-- **Quality Assessment:** excellent
-
-## 🔄 Execution Steps
-
 ### Step 1: Task Orchestrator
 
 **Metadata:**
-
-- task_plan: {'subtasks': [{'required_expertise': 'Database Architecture & Security', 'estimated_complexity': 'medium', 'title': 'Data Foundation & Security Architecture', 'dependencies': [], 'priority': 1, 'id': 'data_modeling', 'output_format': 'ERD and Prisma Schema definitions', 'description': "Design the PostgreSQL schema using Prisma. Define entities for Users (Homeowners/Contractors), Properties, Captures, Assessments, Reports, and Leads. Implement Supabase Row-Level Security (RLS) policies to ensure homeowner data privacy and 'least-privilege' access."}, {'dependencies': ['data_modeling'], 'title': 'Application API & Workflow Orchestration', 'estimated_complexity': 'medium', 'required_expertise': 'Backend Engineering (Fastify/Node.js)', 'description': "Develop the Fastify-based API services. Implement schema validation for incoming capture data. Design the state machine for the 'Capture-to-Execute' workflow (Pending -> Captured -> Assessing -> Reported -> Matched -> Executed).", 'id': 'api_orchestration', 'output_format': 'API Specification and Workflow Logic Diagrams', 'priority': 2}, {'description': "Design the integration with Google Gemini for image analysis. Define the prompt engineering and structured output requirements for identifying risks (doorway widths, heights, textures). Implement the 'Human-in-the-Loop' (HITL) review trigger logic for low-confidence AI outputs.", 'output_format': 'AI Integration Logic and Prompt Strategy', 'id': 'ai_pipeline', 'priority': 3, 'dependencies': ['api_orchestration'], 'title': 'AI Intelligence & Risk Assessment Pipeline', 'estimated_complexity': 'high', 'required_expertise': 'AI/ML Engineering & Computer Vision'}, {'description': "Build the React/Vite/TypeScript frontend logic for the 'Guided Space Capture.' Implement the mobile-web interface for high-speed media upload and real-time user guidance. Ensure seamless integration with the backend for secure media storage.", 'priority': 4, 'id': 'frontend_capture', 'output_format': 'Frontend Component Architecture and UI Logic', 'title': 'Client Experience & Guided Capture Logic', 'dependencies': ['api_orchestration'], 'required_expertise': 'Frontend Engineering (React/TS)', 'estimated_complexity': 'medium'}, {'estimated_complexity': 'medium', 'required_expertise': 'Software Architecture & Data Analysis', 'dependencies': ['ai_pipeline', 'data_modeling'], 'title': 'Reporting & Prioritization Engine', 'id': 'reporting_engine', 'output_format': 'Report Generation Logic and Sample Schema', 'priority': 5, 'description': "Implement the logic for generating the 'Premium Assessment Report.' This includes the ROI calculation logic, prioritization of risks (High/Med/Low), and the automated generation of the 'Materials Needed' checklist."}, {'priority': 6, 'id': 'marketplace_logic', 'output_format': 'Payment Workflow and Marketplace Logic Documentation', 'description': "Configure Stripe Connect for multi-party payments. Implement the logic for contractor lead purchases ($125/lead), marketplace settlement, and access control for 'Qualified Project Intelligence' packages.", 'required_expertise': 'FinTech & Marketplace Engineering', 'estimated_complexity': 'high', 'title': 'Marketplace Settlement & Lead Distribution', 'dependencies': ['reporting_engine', 'api_orchestration']}, {'dependencies': ['data_modeling', 'reporting_engine'], 'title': 'Longitudinal Intelligence & Enterprise Integration', 'estimated_complexity': 'medium', 'required_expertise': 'Enterprise Architecture & Compliance', 'description': "Design the 'Lifetime Home Record' data structure. Implement the logic for longitudinal property tracking and the API hooks for future healthcare/insurance integrations (HIPAA/SOC2 readiness).", 'id': 'longitudinal_data', 'output_format': 'Future-State Integration Roadmap and Data Specs', 'priority': 7}], 'execution_strategy': "The execution will follow a modular, service-oriented approach. We will first establish the data foundation and security protocols (Data Layer), followed by the core workflow logic (Backend & AI). Parallel development will occur for the Client Experience (Frontend) and the Marketplace/Payment systems. The final phase will focus on the 'Intelligence Layer'—the reporting and longitudinal data structures that provide the long-term competitive moat. This strategy ensures that the 'Capture-to-Execute' workflow is hardened before scaling to enterprise integrations.", 'task_understanding': 'The objective is to design the technical architecture logic for HOMEase, a platform that uses AI to assess home safety for the aging population. The architecture must support a 6-step workflow: Capture, Assess, Report, Prioritize, Match, and Execute. It requires a modern stack (React, Fastify, PostgreSQL, Supabase, Gemini, Stripe) and must transition from a lead marketplace to a longitudinal property intelligence platform. Key focus areas include AI-driven risk identification, secure data handling, and marketplace unit economics.', 'success_metrics': ['Successful end-to-end data flow from smartphone capture to a $125 lead purchase.', 'Verified implementation of Row-Level Security (RLS) protecting homeowner data.', 'AI output consistency for key measurements (doorways, counter heights) within a defined tolerance.', 'Scalable API architecture capable of handling regional pilot density (Texas/Florida).', 'Clear technical path to SOC 2 and HIPAA compliance for enterprise expansion.']}
+```log
+- task_plan: {
+  'subtasks': [
+    {
+      'required_expertise': 'Database Architecture & Security', 
+      'estimated_complexity': 'medium', 
+      'title': 'Data Foundation & Security Architecture', 
+      'dependencies': [], 
+      'priority': 1, 
+      'id': 'data_modeling', 
+      'output_format': 'ERD and Prisma Schema definitions', 
+      'description': "Design the PostgreSQL schema using Prisma. Define entities for Users (Homeowners/Contractors), Properties, Captures, Assessments, Reports, and Leads. Implement Supabase Row-Level Security (RLS) policies to ensure homeowner data privacy and 'least-privilege' access."
+    }, 
+    {
+      'dependencies': ['data_modeling'], 
+      'title': 'Application API & Workflow Orchestration', 
+      'estimated_complexity': 'medium', 
+      'required_expertise': 'Backend Engineering (Fastify/Node.js)', 
+      'description': "Develop the Fastify-based API services. Implement schema validation for incoming capture data. Design the state machine for the 'Capture-to-Execute' workflow (Pending -> Captured -> Assessing -> Reported -> Matched -> Executed).", 
+      'id': 'api_orchestration', 
+      'output_format': 'API Specification and Workflow Logic Diagrams', 
+      'priority': 2
+    }, 
+    {
+      'description': "Design the integration with Google Gemini for image analysis. Define the prompt engineering and structured output requirements for identifying risks (doorway widths, heights, textures). Implement the 'Human-in-the-Loop' (HITL) review trigger logic for low-confidence AI outputs.",
+      'output_format': 'AI Integration Logic and Prompt Strategy', 
+      'id': 'ai_pipeline', 
+      'priority': 3, 
+      'dependencies': ['api_orchestration'], 
+      'title': 'AI Intelligence & Risk Assessment Pipeline', 
+      'estimated_complexity': 'high', 
+      'required_expertise': 'AI/ML Engineering & Computer Vision'
+    }, 
+    {
+      'description': "Build the React/Vite/TypeScript frontend logic for the 'Guided Space Capture.' Implement the mobile-web interface for high-speed media upload and real-time user guidance. Ensure seamless integration with the backend for secure media storage.", 
+      'priority': 4, 
+      'id': 'frontend_capture', 
+      'output_format': 'Frontend Component Architecture and UI Logic', 
+      'title': 'Client Experience & Guided Capture Logic', 
+      'dependencies': ['api_orchestration'], 
+      'required_expertise': 'Frontend Engineering (React/TS)', 
+      'estimated_complexity': 'medium'
+    }, 
+    {
+      'estimated_complexity': 'medium', 
+      'required_expertise': 'Software Architecture & Data Analysis', 
+      'dependencies': ['ai_pipeline', 'data_modeling'], 
+      'title': 'Reporting & Prioritization Engine', 
+      'id': 'reporting_engine', 
+      'output_format': 'Report Generation Logic and Sample Schema', 
+      'priority': 5, 
+      'description': "Implement the logic for generating the 'Premium Assessment Report.' This includes the ROI calculation logic, prioritization of risks (High/Med/Low), and the automated generation of the 'Materials Needed' checklist."
+    }, 
+    {
+      'priority': 6, 
+      'id': 'marketplace_logic', 
+      'output_format': 'Payment Workflow and Marketplace Logic Documentation', 
+      'description': "Configure Stripe Connect for multi-party payments. Implement the logic for contractor lead purchases ($125/lead), marketplace settlement, and access control for 'Qualified Project Intelligence' packages.", 
+      'required_expertise': 'FinTech & Marketplace Engineering', 
+      'estimated_complexity': 'high', 
+      'title': 'Marketplace Settlement & Lead Distribution', 
+      'dependencies': ['reporting_engine', 'api_orchestration']
+    }, 
+    {
+      'dependencies': ['data_modeling', 'reporting_engine'], 
+      'title': 'Longitudinal Intelligence & Enterprise Integration', 
+      'estimated_complexity': 'medium', 
+      'required_expertise': 'Enterprise Architecture & Compliance', 
+      'description': "Design the 'Lifetime Home Record' data structure. Implement the logic for longitudinal property tracking and the API hooks for future healthcare/insurance integrations (HIPAA/SOC2 readiness).", 
+      'id': 'longitudinal_data', 
+      'output_format': 'Future-State Integration Roadmap and Data Specs', 
+      'priority': 7
+    }
+  ], 
+  'execution_strategy': "The execution will follow a modular, service-oriented approach. We will first establish the data foundation and security protocols (Data Layer), followed by the core workflow logic (Backend & AI). Parallel development will occur for the Client Experience (Frontend) and the Marketplace/Payment systems. The final phase will focus on the 'Intelligence Layer'—the reporting and longitudinal data structures that provide the long-term competitive moat. This strategy ensures that the 'Capture-to-Execute' workflow is hardened before scaling to enterprise integrations.", 
+  'task_understanding': 'The objective is to design the technical architecture logic for HOMEase, a platform that uses AI to assess home safety for the aging population. The architecture must support a 6-step workflow: Capture, Assess, Report, Prioritize, Match, and Execute. It requires a modern stack (React, Fastify, PostgreSQL, Supabase, Gemini, Stripe) and must transition from a lead marketplace to a longitudinal property intelligence platform. Key focus areas include AI-driven risk identification, secure data handling, and marketplace unit economics.', 
+  'success_metrics': [
+    'Successful end-to-end data flow from smartphone capture to a $125 lead purchase.', 'Verified implementation of Row-Level Security (RLS) protecting homeowner data.', 'AI output consistency for key measurements (doorways, counter heights) within a defined tolerance.', 'Scalable API architecture capable of handling regional pilot density (Texas/Florida).', 'Clear technical path to SOC 2 and HIPAA compliance for enterprise expansion.'
+  ]
+}
+```
 - subtask_count: 7
 - execution_strategy: The execution will follow a modular, service-oriented approach. We will first establish the data foundation and security protocols (Data Layer), followed by the core workflow logic (Backend & AI). Parallel development will occur for the Client Experience (Frontend) and the Marketplace/Payment systems. The final phase will focus on the 'Intelligence Layer'—the reporting and longitudinal data structures that provide the long-term competitive moat. This strategy ensures that the 'Capture-to-Execute' workflow is hardened before scaling to enterprise integrations.
-
-**Content (3,254 characters):**
 
 **Task Understanding:**
 The objective is to design the technical architecture logic for HOMEase, a platform that uses AI to assess home safety for the aging population. The architecture must support a 6-step workflow: Capture, Assess, Report, Prioritize, Match, and Execute. It requires a modern stack (React, Fastify, PostgreSQL, Supabase, Gemini, Stripe) and must transition from a lead marketplace to a longitudinal property intelligence platform. Key focus areas include AI-driven risk identification, secure data handling, and marketplace unit economics.

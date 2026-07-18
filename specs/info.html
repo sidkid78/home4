@@ -382,8 +382,87 @@ code {
 <h2 id="%F0%9F%94%84-execution-steps">🔄 Execution Steps</h2>
 <h3 id="step-1-task-orchestrator">Step 1: Task Orchestrator</h3>
 <p><strong>Metadata:</strong></p>
+<pre class="hljs"><code><div>- task_plan: {
+  'subtasks': [
+    {
+      'required_expertise': 'Database Architecture &amp; Security', 
+      'estimated_complexity': 'medium', 
+      'title': 'Data Foundation &amp; Security Architecture', 
+      'dependencies': [], 
+      'priority': 1, 
+      'id': 'data_modeling', 
+      'output_format': 'ERD and Prisma Schema definitions', 
+      'description': &quot;Design the PostgreSQL schema using Prisma. Define entities for Users (Homeowners/Contractors), Properties, Captures, Assessments, Reports, and Leads. Implement Supabase Row-Level Security (RLS) policies to ensure homeowner data privacy and 'least-privilege' access.&quot;
+    }, 
+    {
+      'dependencies': ['data_modeling'], 
+      'title': 'Application API &amp; Workflow Orchestration', 
+      'estimated_complexity': 'medium', 
+      'required_expertise': 'Backend Engineering (Fastify/Node.js)', 
+      'description': &quot;Develop the Fastify-based API services. Implement schema validation for incoming capture data. Design the state machine for the 'Capture-to-Execute' workflow (Pending -&gt; Captured -&gt; Assessing -&gt; Reported -&gt; Matched -&gt; Executed).&quot;, 
+      'id': 'api_orchestration', 
+      'output_format': 'API Specification and Workflow Logic Diagrams', 
+      'priority': 2
+    }, 
+    {
+      'description': &quot;Design the integration with Google Gemini for image analysis. Define the prompt engineering and structured output requirements for identifying risks (doorway widths, heights, textures). Implement the 'Human-in-the-Loop' (HITL) review trigger logic for low-confidence AI outputs.&quot;,
+      'output_format': 'AI Integration Logic and Prompt Strategy', 
+      'id': 'ai_pipeline', 
+      'priority': 3, 
+      'dependencies': ['api_orchestration'], 
+      'title': 'AI Intelligence &amp; Risk Assessment Pipeline', 
+      'estimated_complexity': 'high', 
+      'required_expertise': 'AI/ML Engineering &amp; Computer Vision'
+    }, 
+    {
+      'description': &quot;Build the React/Vite/TypeScript frontend logic for the 'Guided Space Capture.' Implement the mobile-web interface for high-speed media upload and real-time user guidance. Ensure seamless integration with the backend for secure media storage.&quot;, 
+      'priority': 4, 
+      'id': 'frontend_capture', 
+      'output_format': 'Frontend Component Architecture and UI Logic', 
+      'title': 'Client Experience &amp; Guided Capture Logic', 
+      'dependencies': ['api_orchestration'], 
+      'required_expertise': 'Frontend Engineering (React/TS)', 
+      'estimated_complexity': 'medium'
+    }, 
+    {
+      'estimated_complexity': 'medium', 
+      'required_expertise': 'Software Architecture &amp; Data Analysis', 
+      'dependencies': ['ai_pipeline', 'data_modeling'], 
+      'title': 'Reporting &amp; Prioritization Engine', 
+      'id': 'reporting_engine', 
+      'output_format': 'Report Generation Logic and Sample Schema', 
+      'priority': 5, 
+      'description': &quot;Implement the logic for generating the 'Premium Assessment Report.' This includes the ROI calculation logic, prioritization of risks (High/Med/Low), and the automated generation of the 'Materials Needed' checklist.&quot;
+    }, 
+    {
+      'priority': 6, 
+      'id': 'marketplace_logic', 
+      'output_format': 'Payment Workflow and Marketplace Logic Documentation', 
+      'description': &quot;Configure Stripe Connect for multi-party payments. Implement the logic for contractor lead purchases ($125/lead), marketplace settlement, and access control for 'Qualified Project Intelligence' packages.&quot;, 
+      'required_expertise': 'FinTech &amp; Marketplace Engineering', 
+      'estimated_complexity': 'high', 
+      'title': 'Marketplace Settlement &amp; Lead Distribution', 
+      'dependencies': ['reporting_engine', 'api_orchestration']
+    }, 
+    {
+      'dependencies': ['data_modeling', 'reporting_engine'], 
+      'title': 'Longitudinal Intelligence &amp; Enterprise Integration', 
+      'estimated_complexity': 'medium', 
+      'required_expertise': 'Enterprise Architecture &amp; Compliance', 
+      'description': &quot;Design the 'Lifetime Home Record' data structure. Implement the logic for longitudinal property tracking and the API hooks for future healthcare/insurance integrations (HIPAA/SOC2 readiness).&quot;, 
+      'id': 'longitudinal_data', 
+      'output_format': 'Future-State Integration Roadmap and Data Specs', 
+      'priority': 7
+    }
+  ], 
+  'execution_strategy': &quot;The execution will follow a modular, service-oriented approach. We will first establish the data foundation and security protocols (Data Layer), followed by the core workflow logic (Backend &amp; AI). Parallel development will occur for the Client Experience (Frontend) and the Marketplace/Payment systems. The final phase will focus on the 'Intelligence Layer'—the reporting and longitudinal data structures that provide the long-term competitive moat. This strategy ensures that the 'Capture-to-Execute' workflow is hardened before scaling to enterprise integrations.&quot;, 
+  'task_understanding': 'The objective is to design the technical architecture logic for HOMEase, a platform that uses AI to assess home safety for the aging population. The architecture must support a 6-step workflow: Capture, Assess, Report, Prioritize, Match, and Execute. It requires a modern stack (React, Fastify, PostgreSQL, Supabase, Gemini, Stripe) and must transition from a lead marketplace to a longitudinal property intelligence platform. Key focus areas include AI-driven risk identification, secure data handling, and marketplace unit economics.', 
+  'success_metrics': [
+    'Successful end-to-end data flow from smartphone capture to a $125 lead purchase.', 'Verified implementation of Row-Level Security (RLS) protecting homeowner data.', 'AI output consistency for key measurements (doorways, counter heights) within a defined tolerance.', 'Scalable API architecture capable of handling regional pilot density (Texas/Florida).', 'Clear technical path to SOC 2 and HIPAA compliance for enterprise expansion.'
+  ]
+}
+</div></code></pre>
 <ul>
-<li>task_plan: {'subtasks': [{'required_expertise': 'Database Architecture &amp; Security', 'estimated_complexity': 'medium', 'title': 'Data Foundation &amp; Security Architecture', 'dependencies': [], 'priority': 1, 'id': 'data_modeling', 'output_format': 'ERD and Prisma Schema definitions', 'description': &quot;Design the PostgreSQL schema using Prisma. Define entities for Users (Homeowners/Contractors), Properties, Captures, Assessments, Reports, and Leads. Implement Supabase Row-Level Security (RLS) policies to ensure homeowner data privacy and 'least-privilege' access.&quot;}, {'dependencies': ['data_modeling'], 'title': 'Application API &amp; Workflow Orchestration', 'estimated_complexity': 'medium', 'required_expertise': 'Backend Engineering (Fastify/Node.js)', 'description': &quot;Develop the Fastify-based API services. Implement schema validation for incoming capture data. Design the state machine for the 'Capture-to-Execute' workflow (Pending -&gt; Captured -&gt; Assessing -&gt; Reported -&gt; Matched -&gt; Executed).&quot;, 'id': 'api_orchestration', 'output_format': 'API Specification and Workflow Logic Diagrams', 'priority': 2}, {'description': &quot;Design the integration with Google Gemini for image analysis. Define the prompt engineering and structured output requirements for identifying risks (doorway widths, heights, textures). Implement the 'Human-in-the-Loop' (HITL) review trigger logic for low-confidence AI outputs.&quot;, 'output_format': 'AI Integration Logic and Prompt Strategy', 'id': 'ai_pipeline', 'priority': 3, 'dependencies': ['api_orchestration'], 'title': 'AI Intelligence &amp; Risk Assessment Pipeline', 'estimated_complexity': 'high', 'required_expertise': 'AI/ML Engineering &amp; Computer Vision'}, {'description': &quot;Build the React/Vite/TypeScript frontend logic for the 'Guided Space Capture.' Implement the mobile-web interface for high-speed media upload and real-time user guidance. Ensure seamless integration with the backend for secure media storage.&quot;, 'priority': 4, 'id': 'frontend_capture', 'output_format': 'Frontend Component Architecture and UI Logic', 'title': 'Client Experience &amp; Guided Capture Logic', 'dependencies': ['api_orchestration'], 'required_expertise': 'Frontend Engineering (React/TS)', 'estimated_complexity': 'medium'}, {'estimated_complexity': 'medium', 'required_expertise': 'Software Architecture &amp; Data Analysis', 'dependencies': ['ai_pipeline', 'data_modeling'], 'title': 'Reporting &amp; Prioritization Engine', 'id': 'reporting_engine', 'output_format': 'Report Generation Logic and Sample Schema', 'priority': 5, 'description': &quot;Implement the logic for generating the 'Premium Assessment Report.' This includes the ROI calculation logic, prioritization of risks (High/Med/Low), and the automated generation of the 'Materials Needed' checklist.&quot;}, {'priority': 6, 'id': 'marketplace_logic', 'output_format': 'Payment Workflow and Marketplace Logic Documentation', 'description': &quot;Configure Stripe Connect for multi-party payments. Implement the logic for contractor lead purchases ($125/lead), marketplace settlement, and access control for 'Qualified Project Intelligence' packages.&quot;, 'required_expertise': 'FinTech &amp; Marketplace Engineering', 'estimated_complexity': 'high', 'title': 'Marketplace Settlement &amp; Lead Distribution', 'dependencies': ['reporting_engine', 'api_orchestration']}, {'dependencies': ['data_modeling', 'reporting_engine'], 'title': 'Longitudinal Intelligence &amp; Enterprise Integration', 'estimated_complexity': 'medium', 'required_expertise': 'Enterprise Architecture &amp; Compliance', 'description': &quot;Design the 'Lifetime Home Record' data structure. Implement the logic for longitudinal property tracking and the API hooks for future healthcare/insurance integrations (HIPAA/SOC2 readiness).&quot;, 'id': 'longitudinal_data', 'output_format': 'Future-State Integration Roadmap and Data Specs', 'priority': 7}], 'execution_strategy': &quot;The execution will follow a modular, service-oriented approach. We will first establish the data foundation and security protocols (Data Layer), followed by the core workflow logic (Backend &amp; AI). Parallel development will occur for the Client Experience (Frontend) and the Marketplace/Payment systems. The final phase will focus on the 'Intelligence Layer'—the reporting and longitudinal data structures that provide the long-term competitive moat. This strategy ensures that the 'Capture-to-Execute' workflow is hardened before scaling to enterprise integrations.&quot;, 'task_understanding': 'The objective is to design the technical architecture logic for HOMEase, a platform that uses AI to assess home safety for the aging population. The architecture must support a 6-step workflow: Capture, Assess, Report, Prioritize, Match, and Execute. It requires a modern stack (React, Fastify, PostgreSQL, Supabase, Gemini, Stripe) and must transition from a lead marketplace to a longitudinal property intelligence platform. Key focus areas include AI-driven risk identification, secure data handling, and marketplace unit economics.', 'success_metrics': ['Successful end-to-end data flow from smartphone capture to a $125 lead purchase.', 'Verified implementation of Row-Level Security (RLS) protecting homeowner data.', 'AI output consistency for key measurements (doorways, counter heights) within a defined tolerance.', 'Scalable API architecture capable of handling regional pilot density (Texas/Florida).', 'Clear technical path to SOC 2 and HIPAA compliance for enterprise expansion.']}</li>
 <li>subtask_count: 7</li>
 <li>execution_strategy: The execution will follow a modular, service-oriented approach. We will first establish the data foundation and security protocols (Data Layer), followed by the core workflow logic (Backend &amp; AI). Parallel development will occur for the Client Experience (Frontend) and the Marketplace/Payment systems. The final phase will focus on the 'Intelligence Layer'—the reporting and longitudinal data structures that provide the long-term competitive moat. This strategy ensures that the 'Capture-to-Execute' workflow is hardened before scaling to enterprise integrations.</li>
 </ul>

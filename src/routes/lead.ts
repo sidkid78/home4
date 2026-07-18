@@ -3,6 +3,8 @@ import Stripe from 'stripe';
 
 const STRIPE_API_KEY = process.env.STRIPE_API_KEY || 'sk_test_mock';
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_mock';
+// Where Stripe sends the buyer after checkout — back into the SPA.
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
 
 // Initialize Stripe. We use apiVersion bypass if exact type mismatches, but standard init is fine.
 const stripe = new Stripe(STRIPE_API_KEY);
@@ -36,6 +38,17 @@ export default async function leadRoutes(fastify: FastifyInstance) {
     });
 
     return reply.send(teasers);
+  });
+
+  // 0b. Lead status — polled after returning from Stripe checkout to detect
+  //     when the webhook has settled the purchase (AVAILABLE/PENDING/SOLD).
+  fastify.get<{ Params: { id: string } }>('/v1/leads/:id/status', async (request, reply) => {
+    const lead = await fastify.prisma.lead.findUnique({
+      where: { id: request.params.id },
+      select: { id: true, status: true, reportId: true, contractorId: true },
+    });
+    if (!lead) return reply.code(404).send({ error: 'Lead not found' });
+    return reply.send(lead);
   });
 
   // 1. Onboard Contractor
@@ -118,8 +131,8 @@ export default async function leadRoutes(fastify: FastifyInstance) {
               },
             ],
             mode: 'payment',
-            success_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/leads/${lead.id}/success?session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/leads/${lead.id}`,
+            success_url: `${FRONTEND_URL}/?checkout=success&lead=${lead.id}`,
+            cancel_url: `${FRONTEND_URL}/?checkout=cancel&lead=${lead.id}`,
             metadata: {
               leadId: lead.id,
               contractorId: contractorId,
