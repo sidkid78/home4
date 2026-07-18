@@ -1,25 +1,22 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useMachine } from '@xstate/react';
 import { captureMachine } from '../../machines/captureMachine';
 import { useCamera } from '../../hooks/useCamera';
 import { useSupabaseUpload } from '../../hooks/useSupabaseUpload';
 import { GuidanceOverlay } from './GuidanceOverlay';
+import { DemoActors, ProcessResult } from '../../types/report.types';
 
-export const CaptureContainer: React.FC = () => {
+interface Props {
+  actors: DemoActors;
+  onComplete: (result: ProcessResult) => void;
+}
+
+export const CaptureContainer: React.FC<Props> = ({ actors, onComplete }) => {
   const [state, send] = useMachine(captureMachine);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [propertyId, setPropertyId] = useState<string | null>(null);
 
   const { startCamera, stopCamera, captureFrame, error: cameraError } = useCamera(videoRef);
   const { uploadSession, isUploading, error: uploadError } = useSupabaseUpload();
-
-  // Resolve a real Property to attach captures to (dev bootstrap endpoint).
-  useEffect(() => {
-    fetch('/v1/dev/demo-property')
-      .then((res) => (res.ok ? res.json() : Promise.reject(res.statusText)))
-      .then((data) => setPropertyId(data.propertyId))
-      .catch((err) => console.warn('Could not resolve demo property:', err));
-  }, []);
 
   useEffect(() => {
     if (state.matches('initializing')) {
@@ -47,14 +44,29 @@ export const CaptureContainer: React.FC = () => {
     }
   };
 
+  const runPipeline = async (frames: typeof state.context.frames) => {
+    const captureId = await uploadSession(actors.propertyId, state.context.roomType, frames);
+    const res = await fetch(`/v1/captures/${captureId}/process`, { method: 'POST' });
+    if (!res.ok) throw new Error(`Processing failed: ${res.status}`);
+    const result: ProcessResult = await res.json();
+    onComplete(result);
+  };
+
   const handleUpload = async () => {
-    if (!propertyId) {
-      send({ type: 'UPLOAD_ERROR', error: 'No property resolved yet — try again in a moment.' });
-      return;
-    }
     send({ type: 'UPLOAD' });
     try {
-      await uploadSession(propertyId, state.context.roomType, state.context.frames);
+      await runPipeline(state.context.frames);
+      send({ type: 'UPLOAD_SUCCESS' });
+    } catch (err: any) {
+      send({ type: 'UPLOAD_ERROR', error: err.message });
+    }
+  };
+
+  // No camera? Still let the demo run the pipeline (mock AI needs no images).
+  const handleSkipCamera = async () => {
+    send({ type: 'SKIP' });
+    try {
+      await runPipeline([]);
       send({ type: 'UPLOAD_SUCCESS' });
     } catch (err: any) {
       send({ type: 'UPLOAD_ERROR', error: err.message });
@@ -134,16 +146,36 @@ export const CaptureContainer: React.FC = () => {
           </div>
         )}
         
-        {state.matches('uploading') && (
-          <div className="text-white text-center py-8 font-semibold animate-pulse">
-            Analyzing property data...
+        {state.matches('permissionDenied') && (
+          <div className="space-y-3 text-center">
+            <p className="text-white text-sm">
+              Camera unavailable{cameraError ? ` (${cameraError})` : ''}.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => send({ type: 'RETRY' })}
+                className="flex-1 py-3 bg-gray-700 text-white rounded-xl font-medium"
+              >
+                Retry camera
+              </button>
+              <button
+                onClick={handleSkipCamera}
+                className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-semibold"
+              >
+                Use sample capture
+              </button>
+            </div>
           </div>
         )}
 
-        {state.matches('completed') && (
-          <div className="text-green-400 text-center py-8 font-bold text-xl">
-            Capture Complete!
+        {state.matches('uploading') && (
+          <div className="text-white text-center py-8 font-semibold animate-pulse">
+            Analyzing property with AI…
           </div>
+        )}
+
+        {(uploadError || cameraError) && state.matches('reviewing') && (
+          <p className="text-red-400 text-center text-sm mt-2">{uploadError || cameraError}</p>
         )}
       </div>
     </div>

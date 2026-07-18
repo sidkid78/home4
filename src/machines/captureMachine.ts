@@ -16,6 +16,7 @@ type CaptureEvents =
   | { type: 'CAPTURE_SUCCESS'; frame: ImageFrame }
   | { type: 'REVIEW' }
   | { type: 'RETRY' }
+  | { type: 'SKIP' }
   | { type: 'UPLOAD' }
   | { type: 'UPLOAD_SUCCESS' }
   | { type: 'UPLOAD_ERROR'; error: string };
@@ -59,7 +60,7 @@ export const captureMachine = setup({
       }
     },
     permissionDenied: {
-      on: { RETRY: 'initializing' }
+      on: { RETRY: 'initializing', SKIP: 'uploading' }
     },
     guiding: {
       on: {
