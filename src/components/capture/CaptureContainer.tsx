@@ -5,6 +5,7 @@ import { useCamera } from '../../hooks/useCamera';
 import { useSupabaseUpload } from '../../hooks/useSupabaseUpload';
 import { GuidanceOverlay } from './GuidanceOverlay';
 import { DemoActors, ProcessResult } from '../../types/report.types';
+import { apiFetch } from '../../lib/apiFetch';
 
 interface Props {
   actors: DemoActors;
@@ -46,7 +47,7 @@ export const CaptureContainer: React.FC<Props> = ({ actors, onComplete }) => {
 
   const runPipeline = async (frames: typeof state.context.frames) => {
     const captureId = await uploadSession(actors.propertyId, state.context.roomType, frames);
-    const res = await fetch(`/v1/captures/${captureId}/process`, { method: 'POST' });
+    const res = await apiFetch(`/v1/captures/${captureId}/process`, { method: 'POST' });
     if (!res.ok) throw new Error(`Processing failed: ${res.status}`);
     const result: ProcessResult = await res.json();
     onComplete(result);

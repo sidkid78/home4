@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ImageFrame } from '../types/capture.types';
+import { apiFetch } from '../lib/apiFetch';
 
 // Convert a Blob to base64 (no data: prefix) for JSON transport to the backend.
 const blobToBase64 = (blob: Blob): Promise<string> =>
@@ -33,7 +34,7 @@ export const useSupabaseUpload = () => {
         const images = await Promise.all(
           frames.map(async (f) => ({ id: f.id, dataBase64: await blobToBase64(f.blob) }))
         );
-        const upRes = await fetch('/v1/uploads', {
+        const upRes = await apiFetch('/v1/uploads', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ propertyId, roomType, images }),
@@ -44,7 +45,7 @@ export const useSupabaseUpload = () => {
         mediaUrls = [`mock://storage/captures/${propertyId}.jpg`];
       }
 
-      const response = await fetch('/v1/captures', {
+      const response = await apiFetch('/v1/captures', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ propertyId, roomType, mediaUrls }),

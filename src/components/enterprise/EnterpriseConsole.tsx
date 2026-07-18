@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { DemoActors, RegisteredPartner, FhirBundle, FhirEntry, AuditRecord } from '../../types/report.types';
+import { apiFetch } from '../../lib/apiFetch';
 
 const PARTNER_TYPES = ['HEALTHCARE', 'INSURANCE', 'GOVERNMENT'] as const;
 
@@ -22,7 +23,7 @@ export const EnterpriseConsole: React.FC<Props> = ({ actors }) => {
     setBusy('register');
     setError(null);
     try {
-      const res = await fetch('/v1/enterprise/partners', {
+      const res = await apiFetch('/v1/enterprise/partners', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, type, consentScopes: ['READ_REPORTS'] }),
@@ -43,7 +44,7 @@ export const EnterpriseConsole: React.FC<Props> = ({ actors }) => {
     setBlocked(null);
     setBundle(null);
     try {
-      const res = await fetch(`/v1/enterprise/property/${actors.propertyId}/fhir-observations`, {
+      const res = await apiFetch(`/v1/enterprise/property/${actors.propertyId}/fhir-observations`, {
         headers: { 'x-partner-id': partner.id, 'x-homeowner-consent': consent ? 'true' : 'false' },
       });
       if (res.status === 403) {
@@ -53,7 +54,7 @@ export const EnterpriseConsole: React.FC<Props> = ({ actors }) => {
       if (!res.ok) throw new Error(`FHIR request failed (${res.status})`);
       setBundle(await res.json());
       // Refresh the audit trail (the read we just made is now logged).
-      const auditRes = await fetch(`/v1/enterprise/property/${actors.propertyId}/audit`);
+      const auditRes = await apiFetch(`/v1/enterprise/property/${actors.propertyId}/audit`);
       if (auditRes.ok) setAudit(await auditRes.json());
     } catch (e: any) {
       setError(e.message);

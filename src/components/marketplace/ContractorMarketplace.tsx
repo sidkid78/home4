@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { DemoActors, LeadTeaser, UnlockedReport, Measurement } from '../../types/report.types';
+import { apiFetch } from '../../lib/apiFetch';
 
 const SEVERITY_STYLES: Record<string, string> = {
   HIGH: 'bg-red-500/15 border-red-500/40 text-red-300',
@@ -38,7 +39,7 @@ export const ContractorMarketplace: React.FC<Props> = ({ actors }) => {
   const [unlocked, setUnlocked] = useState<UnlockedReport | null>(null);
 
   const loadLeads = () => {
-    fetch('/v1/leads')
+    apiFetch('/v1/leads')
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`API ${r.status}`))))
       .then(setLeads)
       .catch((e) => setError(e.message));
@@ -50,7 +51,7 @@ export const ContractorMarketplace: React.FC<Props> = ({ actors }) => {
     setBusy('onboard');
     setError(null);
     try {
-      const res = await fetch('/v1/contractors/onboard', {
+      const res = await apiFetch('/v1/contractors/onboard', {
         method: 'POST',
         headers: contractorHeaders(actors.contractorId),
       });
@@ -69,7 +70,7 @@ export const ContractorMarketplace: React.FC<Props> = ({ actors }) => {
     try {
       // Settle the purchase (dev endpoint mirrors the Stripe checkout+webhook
       // settlement atomically; works whether or not live Stripe keys are set).
-      const buyRes = await fetch('/v1/dev/purchase-lead', {
+      const buyRes = await apiFetch('/v1/dev/purchase-lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ leadId: lead.id, contractorId: actors.contractorId }),
@@ -77,7 +78,7 @@ export const ContractorMarketplace: React.FC<Props> = ({ actors }) => {
       if (!buyRes.ok) throw new Error((await buyRes.json()).error || 'Purchase failed');
 
       // Fetch the now-unlocked report through the RLS-style paywall.
-      const reportRes = await fetch(`/v1/reports/${lead.reportId}`, {
+      const reportRes = await apiFetch(`/v1/reports/${lead.reportId}`, {
         headers: contractorHeaders(actors.contractorId),
       });
       if (!reportRes.ok) throw new Error(`Report still locked (${reportRes.status})`);

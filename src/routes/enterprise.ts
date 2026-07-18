@@ -162,7 +162,8 @@ export default async function enterpriseRoutes(fastify: FastifyInstance) {
       return reply.code(400).send({ error: 'Missing actionTaken or verificationMedia' });
     }
 
-    // Verify user can record modifications (admin, or contractor who bought the lead)
+    // Verify user can record modifications: admin, the contractor who bought the
+    // lead, or the homeowner who owns the property (single-login demo).
     let canRecord = false;
     if (userRole === 'admin') {
       canRecord = true;
@@ -178,6 +179,11 @@ export default async function enterpriseRoutes(fastify: FastifyInstance) {
         }
       });
       if (lead) {
+        canRecord = true;
+      }
+    } else if (userRole === 'homeowner') {
+      const property = await fastify.prisma.property.findUnique({ where: { id } });
+      if (property && property.ownerId === userId) {
         canRecord = true;
       }
     }

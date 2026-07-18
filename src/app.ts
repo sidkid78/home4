@@ -4,6 +4,8 @@ import jwt from '@fastify/jwt';
 
 import prismaPlugin from './plugins/prisma';
 import queuesPlugin from './plugins/queues';
+import authPlugin from './plugins/auth';
+import meRoutes from './routes/me';
 import captureRoutes from './routes/capture';
 import reportRoutes from './routes/report';
 import leadRoutes from './routes/lead';
@@ -20,7 +22,9 @@ export async function buildApp(): Promise<FastifyInstance> {
 
   await app.register(prismaPlugin);
   await app.register(queuesPlugin);
+  await app.register(authPlugin); // verifies Bearer token -> trusted x-user-id/role
 
+  await app.register(meRoutes);
   await app.register(captureRoutes);
   await app.register(reportRoutes);
   await app.register(leadRoutes);

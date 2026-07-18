@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ProcessResult, DemoActors, HealthScore, Measurement } from '../../types/report.types';
+import { apiFetch } from '../../lib/apiFetch';
 
 const SEVERITY_STYLES: Record<string, string> = {
   HIGH: 'bg-red-500/15 border-red-500/40 text-red-300',
@@ -37,7 +38,7 @@ export const AssessmentReport: React.FC<Props> = ({ result, actors, onRestart })
     setBusy('purchase');
     setMsg(null);
     try {
-      const res = await fetch('/v1/dev/purchase-lead', {
+      const res = await apiFetch('/v1/dev/purchase-lead', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ leadId: lead.id, contractorId: actors.contractorId }),
@@ -56,7 +57,7 @@ export const AssessmentReport: React.FC<Props> = ({ result, actors, onRestart })
     setBusy('modify');
     setMsg(null);
     try {
-      const res = await fetch(`/v1/properties/${actors.propertyId}/modifications`, {
+      const res = await apiFetch(`/v1/properties/${actors.propertyId}/modifications`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -84,7 +85,7 @@ export const AssessmentReport: React.FC<Props> = ({ result, actors, onRestart })
     setBusy('cert');
     setMsg(null);
     try {
-      const res = await fetch(`/v1/properties/${actors.propertyId}/certificate`, {
+      const res = await apiFetch(`/v1/properties/${actors.propertyId}/certificate`, {
         headers: { 'x-user-id': actors.ownerId, 'x-user-role': 'homeowner' },
       });
       if (!res.ok) throw new Error((await res.json()).error || 'Failed to generate certificate');
