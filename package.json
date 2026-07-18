@@ -39,6 +39,7 @@
     "@google/genai": "^2.12.0",
     "@prisma/client": "^6.19.3",
     "@sinclair/typebox": "^0.34.52",
+    "@supabase/supabase-js": "^2.110.7",
     "@xstate/react": "^6.1.0",
     "acorn": "^8.17.0",
     "acorn-walk": "^8.3.5",

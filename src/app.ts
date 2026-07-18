@@ -8,10 +8,12 @@ import captureRoutes from './routes/capture';
 import reportRoutes from './routes/report';
 import leadRoutes from './routes/lead';
 import enterpriseRoutes from './routes/enterprise';
+import uploadRoutes from './routes/uploads';
 import devRoutes from './routes/dev';
 
 export async function buildApp(): Promise<FastifyInstance> {
-  const app = Fastify({ logger: true });
+  // 15MB body limit: capture uploads arrive as base64-encoded image frames.
+  const app = Fastify({ logger: true, bodyLimit: 15 * 1024 * 1024 });
 
   await app.register(cors);
   await app.register(jwt, { secret: process.env.JWT_SECRET || 'supersecret' });
@@ -23,6 +25,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(reportRoutes);
   await app.register(leadRoutes);
   await app.register(enterpriseRoutes);
+  await app.register(uploadRoutes);
 
   // Dev-only bootstrap/settlement helpers (demo-property, purchase-lead) let
   // anyone seed data and settle purchases, so they must never be open in a
