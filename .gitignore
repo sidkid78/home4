@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Caches & local state
+.prompt_cache/
+.task_registry.json
+
+# Gemini Agent
+.gemini-agent/cache/
+
+# Logs
+*.log
+npm-debug.log*

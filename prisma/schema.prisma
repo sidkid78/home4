@@ -1,0 +1,199 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  HOMEOWNER
+  CONTRACTOR
+  ADMIN
+}
+
+enum CaptureStatus {
+  PENDING
+  PROCESSED
+  FAILED
+}
+
+enum LeadStatus {
+  AVAILABLE
+  PENDING_PAYMENT
+  SOLD
+  ARCHIVED
+}
+
+enum PriorityLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum PartnerType {
+  HEALTHCARE
+  INSURANCE
+  GOVERNMENT
+}
+
+model User {
+  id               String     @id @default(uuid())
+  email            String     @unique
+  role             UserRole   @default(HOMEOWNER)
+  stripeCustomerId String?    @map("stripe_customer_id")
+  properties       Property[]
+  purchasedLeads   Lead[]     @relation("ContractorLeads")
+  createdAt        DateTime   @default(now()) @map("created_at")
+
+  @@map("users")
+}
+
+model Property {
+  id                  String                @id @default(uuid())
+  ownerId             String                @map("owner_id")
+  owner               User                  @relation(fields: [ownerId], references: [id])
+  address             String
+  metadata            Json?
+  captures            Capture[]
+  reports             Report[]
+  healthScores        PropertyHealthScore[]
+  modificationLedgers ModificationLedger[]
+  createdAt           DateTime              @default(now()) @map("created_at")
+
+  @@map("properties")
+}
+
+model Capture {
+  id          String        @id @default(uuid())
+  propertyId  String        @map("property_id")
+  property    Property      @relation(fields: [propertyId], references: [id])
+  roomType    String        @map("room_type")
+  mediaUrls   String[]      @map("media_urls")
+  status      CaptureStatus @default(PENDING)
+  assessments Assessment[]
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  @@map("captures")
+}
+
+model Assessment {
+  id                String      @id @default(uuid())
+  captureId         String      @map("capture_id")
+  capture           Capture     @relation(fields: [captureId], references: [id])
+  roomType          String?     @map("room_type")
+  userMobilityLevel String?     @map("user_mobility_level")
+  risks             Json
+  recommendations   Json?
+  measurements      Json
+  confidenceScore   Float       @map("confidence_score")
+  humanValidated    Boolean     @default(false) @map("human_validated")
+  report            Report?
+
+  @@map("assessments")
+}
+
+model Report {
+  id              String        @id @default(uuid())
+  propertyId      String        @map("property_id")
+  property        Property      @relation(fields: [propertyId], references: [id])
+  assessmentId    String        @unique @map("assessment_id")
+  assessment      Assessment    @relation(fields: [assessmentId], references: [id])
+  priority        PriorityLevel @default(MEDIUM)
+  priorityScore   Float         @default(0.0) @map("priority_score")
+  estimatedValue  Decimal       @map("estimated_value") @db.Decimal(10, 2)
+  roiValue        Decimal       @default(0.0) @map("roi_value") @db.Decimal(10, 2)
+  materialCount   Int           @default(0) @map("material_count")
+  pdfUrl          String?       @map("pdf_url")
+  isPublished     Boolean       @default(false) @map("is_published")
+  isHighValueLead Boolean       @default(false) @map("is_high_value_lead")
+  boqData         String?       @map("boq_data")
+  leads           Lead[]
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  @@index([priorityScore])
+  @@index([isHighValueLead])
+  @@map("reports")
+}
+
+model Lead {
+  id            String        @id @default(uuid())
+  reportId      String        @unique @map("report_id")
+  report        Report        @relation(fields: [reportId], references: [id])
+  contractorId  String?       @map("contractor_id")
+  contractor    User?         @relation("ContractorLeads", fields: [contractorId], references: [id])
+  status        LeadStatus    @default(AVAILABLE)
+  price         Decimal       @default(125.00) @db.Decimal(10, 2)
+  stripeSession String?       @map("stripe_session_id")
+  purchasedAt   DateTime?     @map("purchased_at")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  transactions  Transaction[]
+  modification  ModificationLedger?
+
+  @@index([status])
+  @@map("leads")
+}
+
+model Transaction {
+  id              String   @id @default(uuid())
+  leadId          String   @map("lead_id")
+  lead            Lead     @relation(fields: [leadId], references: [id])
+  stripeChargeId  String   @unique @map("stripe_charge_id")
+  amount          Decimal  @db.Decimal(10, 2)
+  netAmount       Decimal  @map("net_amount") @db.Decimal(10, 2)
+  currency        String   @default("usd")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("transactions")
+}
+
+model PropertyHealthScore {
+  id            String   @id @default(uuid())
+  propertyId    String   @map("property_id")
+  property      Property @relation(fields: [propertyId], references: [id])
+  overallScore  Int      @map("overall_score")
+  mobilityScore Int      @map("mobility_score")
+  fallRiskScore Int      @map("fall_risk_score")
+  changeDelta   Int?     @map("change_delta")
+  recordedAt    DateTime @default(now()) @map("recorded_at")
+
+  @@index([propertyId, recordedAt])
+  @@map("property_health_scores")
+}
+
+model ModificationLedger {
+  id                String   @id @default(uuid())
+  propertyId        String   @map("property_id")
+  property          Property @relation(fields: [propertyId], references: [id])
+  leadId            String?  @unique @map("lead_id")
+  lead              Lead?    @relation(fields: [leadId], references: [id])
+  actionTaken       String   @map("action_taken")
+  verificationMedia String[] @map("verification_media")
+  verifiedBy        String?  @map("verified_by")
+  completedAt       DateTime @map("completed_at")
+
+  @@map("modification_ledger")
+}
+
+model EnterprisePartner {
+  id            String      @id @default(uuid())
+  name          String
+  type          PartnerType
+  apiKeyHash    String      @unique @map("api_key_hash")
+  webhookUrl    String?     @map("webhook_url")
+  consentScopes String[]    @map("consent_scopes")
+  isActive      Boolean     @default(true) @map("is_active")
+
+  @@map("enterprise_partners")
+}
+
+model AccessAudit {
+  id          String   @id @default(uuid())
+  actorId     String   @map("actor_id")
+  resourceId  String   @map("resource_id")
+  actionType  String   @map("action_type")
+  timestamp   DateTime @default(now())
+
+  @@map("access_audit")
+}
