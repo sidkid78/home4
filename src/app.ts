@@ -23,7 +23,17 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(reportRoutes);
   await app.register(leadRoutes);
   await app.register(enterpriseRoutes);
-  await app.register(devRoutes);
+
+  // Dev-only bootstrap/settlement helpers (demo-property, purchase-lead) let
+  // anyone seed data and settle purchases, so they must never be open in a
+  // real deployment. Enabled outside production, or explicitly via
+  // ENABLE_DEV_ROUTES=true (needed to run the public demo).
+  const devRoutesEnabled =
+    process.env.NODE_ENV !== 'production' || process.env.ENABLE_DEV_ROUTES === 'true';
+  if (devRoutesEnabled) {
+    await app.register(devRoutes);
+    app.log.warn('Dev routes enabled (/v1/dev/*) — do not use in a real production environment');
+  }
 
   return app;
 }
