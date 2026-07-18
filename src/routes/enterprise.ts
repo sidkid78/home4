@@ -66,6 +66,24 @@ export default async function enterpriseRoutes(fastify: FastifyInstance) {
     }
   });
 
+  // 2b. GET the access-audit trail for a property (who read what, when).
+  fastify.get<{ Params: { id: string } }>('/v1/enterprise/property/:id/audit', async (request, reply) => {
+    const { id } = request.params;
+    const records = await fastify.prisma.accessAudit.findMany({
+      where: { resourceId: id },
+      orderBy: { timestamp: 'desc' },
+      take: 25,
+    });
+    return reply.send(
+      records.map((r) => ({
+        id: r.id,
+        actorId: r.actorId,
+        actionType: r.actionType,
+        timestamp: r.timestamp,
+      }))
+    );
+  });
+
   // 3. GET property health-score (recalculates on demand)
   fastify.get<{ Params: { id: string } }>('/v1/properties/:id/health-score', async (request, reply) => {
     const { id } = request.params;

@@ -91,3 +91,42 @@ export interface HealthScore {
   fallRiskScore: number;
   changeDelta: number | null;
 }
+
+export interface RegisteredPartner {
+  id: string;
+  name: string;
+  type: 'HEALTHCARE' | 'INSURANCE' | 'GOVERNMENT';
+  consentScopes: string[];
+  apiKey: string;
+}
+
+export interface FhirCoding {
+  system: string;
+  code: string;
+  display?: string;
+}
+
+export interface FhirEntry {
+  fullUrl: string;
+  resource: {
+    resourceType: 'Observation' | 'Condition' | 'DocumentReference';
+    code?: { coding: FhirCoding[] };
+    type?: { coding: FhirCoding[] };
+    valueQuantity?: { value: number; unit: string };
+    effectiveDateTime?: string;
+  };
+}
+
+export interface FhirBundle {
+  resourceType: 'Bundle';
+  type: string;
+  total: number;
+  entry: FhirEntry[];
+}
+
+export interface AuditRecord {
+  id: string;
+  actorId: string;
+  actionType: string;
+  timestamp: string;
+}

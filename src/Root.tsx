@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { CaptureContainer } from './components/capture/CaptureContainer';
 import { AssessmentReport } from './components/report/AssessmentReport';
 import { ContractorMarketplace } from './components/marketplace/ContractorMarketplace';
+import { EnterpriseConsole } from './components/enterprise/EnterpriseConsole';
 import { DemoActors, ProcessResult } from './types/report.types';
 
-type Persona = 'homeowner' | 'contractor';
+type Persona = 'homeowner' | 'contractor' | 'enterprise';
 
 export const App: React.FC = () => {
   const [actors, setActors] = useState<DemoActors | null>(null);
@@ -40,7 +41,7 @@ export const App: React.FC = () => {
     <div className="relative">
       {/* Persona switcher */}
       <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 flex gap-1 rounded-full border border-neutral-700 bg-neutral-900/80 backdrop-blur p-1 text-xs">
-        {(['homeowner', 'contractor'] as Persona[]).map((p) => (
+        {(['homeowner', 'contractor', 'enterprise'] as Persona[]).map((p) => (
           <button
             key={p}
             onClick={() => setPersona(p)}
@@ -53,7 +54,9 @@ export const App: React.FC = () => {
         ))}
       </div>
 
-      {persona === 'contractor' ? (
+      {persona === 'enterprise' ? (
+        <EnterpriseConsole actors={actors} />
+      ) : persona === 'contractor' ? (
         <ContractorMarketplace actors={actors} />
       ) : result ? (
         <AssessmentReport result={result} actors={actors} onRestart={() => setResult(null)} />
