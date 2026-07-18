@@ -1,4 +1,5 @@
 import { FastifyInstance } from 'fastify';
+import { Prisma } from '@prisma/client';
 import { Type } from '@sinclair/typebox';
 import { CaptureCreateSchema, CaptureCreate } from '../schemas/capture.schema';
 import { AIEngineService } from '../services/ai_engine.service';
@@ -57,8 +58,8 @@ export default async function captureRoutes(fastify: FastifyInstance) {
       data: {
         captureId: capture.id,
         roomType: capture.roomType,
-        risks: ai.data.risks,
-        measurements: ai.data.measurements,
+        risks: ai.data.risks as unknown as Prisma.InputJsonValue,
+        measurements: ai.data.measurements as unknown as Prisma.InputJsonValue,
         recommendations: ai.data.risks.map((r) => r.recommendation),
         confidenceScore: ai.data.overall_confidence_score,
         humanValidated: ai.status === 'COMPLETED',
