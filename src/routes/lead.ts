@@ -8,6 +8,36 @@ const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET || 'whsec_mock';
 const stripe = new Stripe(STRIPE_API_KEY);
 
 export default async function leadRoutes(fastify: FastifyInstance) {
+  // 0. Marketplace: browse AVAILABLE leads with sanitized teaser data only.
+  //    Full risks/measurements stay behind the paywall (GET /v1/reports/:id).
+  fastify.get('/v1/leads', async (_request, reply) => {
+    const leads = await fastify.prisma.lead.findMany({
+      where: { status: 'AVAILABLE' },
+      orderBy: { createdAt: 'desc' },
+      include: { report: { include: { assessment: true } } },
+    });
+
+    const teasers = leads.map((lead) => {
+      const risks = Array.isArray(lead.report?.assessment?.risks)
+        ? (lead.report!.assessment!.risks as any[])
+        : [];
+      return {
+        id: lead.id,
+        price: Number(lead.price),
+        priority: lead.report?.priority ?? 'MEDIUM',
+        roomType: lead.report?.assessment?.roomType ?? 'UNKNOWN',
+        estimatedValue: Number(lead.report?.estimatedValue ?? 0),
+        roiValue: Number(lead.report?.roiValue ?? 0),
+        materialCount: lead.report?.materialCount ?? 0,
+        isHighValueLead: lead.report?.isHighValueLead ?? false,
+        riskCount: risks.length,
+        reportId: lead.report?.id,
+      };
+    });
+
+    return reply.send(teasers);
+  });
+
   // 1. Onboard Contractor
   fastify.post('/v1/contractors/onboard', async (request: FastifyRequest, reply: FastifyReply) => {
     const contractorId = request.headers['x-user-id'] as string;

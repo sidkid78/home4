@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { CaptureContainer } from './components/capture/CaptureContainer';
 import { AssessmentReport } from './components/report/AssessmentReport';
+import { ContractorMarketplace } from './components/marketplace/ContractorMarketplace';
 import { DemoActors, ProcessResult } from './types/report.types';
+
+type Persona = 'homeowner' | 'contractor';
 
 export const App: React.FC = () => {
   const [actors, setActors] = useState<DemoActors | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ProcessResult | null>(null);
+  const [persona, setPersona] = useState<Persona>('homeowner');
 
   useEffect(() => {
     fetch('/v1/dev/demo-property')
@@ -32,9 +36,30 @@ export const App: React.FC = () => {
     );
   }
 
-  if (result) {
-    return <AssessmentReport result={result} actors={actors} onRestart={() => setResult(null)} />;
-  }
+  return (
+    <div className="relative">
+      {/* Persona switcher */}
+      <div className="fixed top-3 left-1/2 -translate-x-1/2 z-50 flex gap-1 rounded-full border border-neutral-700 bg-neutral-900/80 backdrop-blur p-1 text-xs">
+        {(['homeowner', 'contractor'] as Persona[]).map((p) => (
+          <button
+            key={p}
+            onClick={() => setPersona(p)}
+            className={`px-4 py-1.5 rounded-full font-medium capitalize transition ${
+              persona === p ? 'bg-blue-600 text-white' : 'text-neutral-400 hover:text-neutral-200'
+            }`}
+          >
+            {p}
+          </button>
+        ))}
+      </div>
 
-  return <CaptureContainer actors={actors} onComplete={setResult} />;
+      {persona === 'contractor' ? (
+        <ContractorMarketplace actors={actors} />
+      ) : result ? (
+        <AssessmentReport result={result} actors={actors} onRestart={() => setResult(null)} />
+      ) : (
+        <CaptureContainer actors={actors} onComplete={setResult} />
+      )}
+    </div>
+  );
 };

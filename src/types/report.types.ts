@@ -54,6 +54,37 @@ export interface DemoActors {
   contractorId: string;
 }
 
+export interface LeadTeaser {
+  id: string;
+  price: number;
+  priority: 'HIGH' | 'MEDIUM' | 'LOW';
+  roomType: string;
+  estimatedValue: number;
+  roiValue: number;
+  materialCount: number;
+  isHighValueLead: boolean;
+  riskCount: number;
+  reportId: string;
+}
+
+export interface UnlockedReport {
+  id: string;
+  priority: 'HIGH' | 'MEDIUM' | 'LOW';
+  priorityScore: number;
+  estimatedValue: number;
+  roiValue: number;
+  materialCount: number;
+  isHighValueLead: boolean;
+  roomType: string | null;
+  boq: BoqItem[];
+  assessment: {
+    risks: Risk[];
+    measurements: Measurement[];
+    confidenceScore: number;
+    humanValidated: boolean;
+  } | null;
+}
+
 export interface HealthScore {
   overallScore: number;
   mobilityScore: number;

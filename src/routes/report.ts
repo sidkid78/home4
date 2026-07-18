@@ -45,12 +45,24 @@ export default async function reportRoutes(fastify: FastifyInstance) {
       return reply.code(403).send({ error: 'Forbidden' });
     }
 
+    let boq: Array<{ name: string; price: number; qty: number }> = [];
+    try {
+      boq = report.boqData ? JSON.parse(report.boqData) : [];
+    } catch {
+      boq = [];
+    }
+
     return {
       id: report.id,
       priority: report.priority,
-      estimatedValue: report.estimatedValue,
-      roiValue: report.roiValue,
+      priorityScore: Number(report.priorityScore),
+      estimatedValue: Number(report.estimatedValue),
+      roiValue: Number(report.roiValue),
+      materialCount: report.materialCount,
+      isHighValueLead: report.isHighValueLead,
       pdfUrl: report.pdfUrl,
+      boq,
+      roomType: report.assessment?.roomType ?? null,
       assessment: report.assessment ? {
         risks: report.assessment.risks,
         measurements: report.assessment.measurements,
