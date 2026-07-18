@@ -8,6 +8,7 @@ import captureRoutes from './routes/capture';
 import reportRoutes from './routes/report';
 import leadRoutes from './routes/lead';
 import enterpriseRoutes from './routes/enterprise';
+import devRoutes from './routes/dev';
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({ logger: true });
@@ -22,6 +23,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(reportRoutes);
   await app.register(leadRoutes);
   await app.register(enterpriseRoutes);
+  await app.register(devRoutes);
 
   return app;
 }

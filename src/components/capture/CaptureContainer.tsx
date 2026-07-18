@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useMachine } from '@xstate/react';
 import { captureMachine } from '../../machines/captureMachine';
 import { useCamera } from '../../hooks/useCamera';
@@ -8,9 +8,18 @@ import { GuidanceOverlay } from './GuidanceOverlay';
 export const CaptureContainer: React.FC = () => {
   const [state, send] = useMachine(captureMachine);
   const videoRef = useRef<HTMLVideoElement>(null);
-  
+  const [propertyId, setPropertyId] = useState<string | null>(null);
+
   const { startCamera, stopCamera, captureFrame, error: cameraError } = useCamera(videoRef);
   const { uploadSession, isUploading, error: uploadError } = useSupabaseUpload();
+
+  // Resolve a real Property to attach captures to (dev bootstrap endpoint).
+  useEffect(() => {
+    fetch('/v1/dev/demo-property')
+      .then((res) => (res.ok ? res.json() : Promise.reject(res.statusText)))
+      .then((data) => setPropertyId(data.propertyId))
+      .catch((err) => console.warn('Could not resolve demo property:', err));
+  }, []);
 
   useEffect(() => {
     if (state.matches('initializing')) {
@@ -39,10 +48,13 @@ export const CaptureContainer: React.FC = () => {
   };
 
   const handleUpload = async () => {
+    if (!propertyId) {
+      send({ type: 'UPLOAD_ERROR', error: 'No property resolved yet — try again in a moment.' });
+      return;
+    }
     send({ type: 'UPLOAD' });
     try {
-      // Use a test property ID
-      await uploadSession('test-property-uuid', state.context.roomType, state.context.frames);
+      await uploadSession(propertyId, state.context.roomType, state.context.frames);
       send({ type: 'UPLOAD_SUCCESS' });
     } catch (err: any) {
       send({ type: 'UPLOAD_ERROR', error: err.message });
